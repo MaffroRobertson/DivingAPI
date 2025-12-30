@@ -4,6 +4,7 @@
         int Id,
         string Name,
         string Location,
-        int ExperienceLevelId
+        int ExperienceLevelId,
+        string Description
     );
 }

@@ -36,7 +36,8 @@ namespace DivingAPI.Mapping
                 diveSite.Id,
                 diveSite.Name,
                 diveSite.Location,
-                diveSite.ExperienceLevel!.Name
+                diveSite.ExperienceLevel!.Name,
+                diveSite.Description
             );
         }
 
@@ -47,7 +48,8 @@ namespace DivingAPI.Mapping
                 diveSite.Id,
                 diveSite.Name,
                 diveSite.Location,
-                diveSite.ExperienceLevelId
+                diveSite.ExperienceLevelId,
+                diveSite.Description
             );
         }
 

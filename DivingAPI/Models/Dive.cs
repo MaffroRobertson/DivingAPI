@@ -11,7 +11,7 @@ namespace DivingAPI.Models
         [Required] public DateTime Date { get; set; }
         [Required] public int Duration { get; set; } // in minutes
         [Required][Range(1, 500)] public int MaxDepth { get; set; } // in meters
-        public string Notes { get; set; }
+        public string Notes { get; set; } = string.Empty;
 
         public Dive() { }
     }

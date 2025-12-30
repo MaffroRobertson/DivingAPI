@@ -10,14 +10,6 @@ namespace DivingAPI.Endpoints
     {
         const string GetDiveSiteEndpointName = "GetDiveSite";
 
-        private static readonly List<DiveSiteDetailsDTO> diveSites =
-            [
-            new(
-                1,"Sail Rock", "Thailand", 1
-                ),
-            new(
-                2,"Osprey Reef", "Australi", 2)
-            ];
 
         public static RouteGroupBuilder MapDiveSiteEndpoints(this WebApplication app)
         {
@@ -70,6 +62,8 @@ namespace DivingAPI.Endpoints
                 dbContext.Entry(existingDiveSite)
                     .CurrentValues
                     .SetValues(updatedDiveSite.ToEntity(id));
+
+                await dbContext.SaveChangesAsync();
 
                 return Results.NoContent();
             });
