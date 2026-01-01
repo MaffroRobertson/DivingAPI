@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DivingAPI.Data.Migrations
 {
     [DbContext(typeof(DivingContext))]
-    [Migration("20251230114738_PreDockerMigration")]
-    partial class PreDockerMigration
+    [Migration("20260101125114_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

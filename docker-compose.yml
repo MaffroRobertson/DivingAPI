@@ -1,0 +1,33 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      MSSQL_SA_PASSWORD: "DBStrongPassword1!"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: ["CMD-SHELL", "grep -q 'SQL Server is now ready for client connections' /var/opt/mssql/log/errorlog || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 40s  # Extra grace period for first startup/recovery
+    volumes:
+      - sql-data:/var/opt/mssql  # Persist data
+
+  api:
+    build:
+      context: .
+      dockerfile: DivingAPI/Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+            
+    environment:
+      - ConnectionStrings__LocalDB=Server=db;Database=DivingDb;User Id=sa;Password=DBStrongPassword1!;TrustServerCertificate=True;Encrypt=False;
+      - ASPNETCORE_URLS=http://+:8080
+
+volumes:
+  sql-data:
