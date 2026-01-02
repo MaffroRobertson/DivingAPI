@@ -8,9 +8,11 @@ namespace DivingAPI.Endpoints
     public static class ExperienceLevelEndpoints
     {
         public static RouteGroupBuilder MapExperienceLevelEndpoints(this WebApplication app)
-        { 
+        {
             var group = app.MapGroup("experiencelevels")
-                .WithParameterValidation();
+                .WithParameterValidation()
+                .WithTags("Experience Levels")
+                .RequireAuthorization();
 
             group.MapGet("/", async (DivingContext dbContext) =>
             await dbContext.ExperienceLevels
@@ -18,7 +20,7 @@ namespace DivingAPI.Endpoints
                             .AsNoTracking()
                             .ToListAsync());
             return group;
-        
-                }
+
+        }
     }
 }

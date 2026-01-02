@@ -13,7 +13,9 @@ namespace DivingAPI.Endpoints
         public static RouteGroupBuilder MapDiveEndpoints(this WebApplication app)
         {
             var group = app.MapGroup("dives")
-                .WithParameterValidation();
+                .WithParameterValidation()
+                .WithTags("Dives")
+                .RequireAuthorization();
 
 
             //GET all Dives
