@@ -29,12 +29,9 @@ builder.Services.AddSwaggerGen(options =>
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\""
     });
 
-    options.AddSecurityRequirement(document =>
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        return new OpenApiSecurityRequirement
-        {
-            [new OpenApiSecuritySchemeReference(securitySchemeId)] = new List<string>()
-        };
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
 
@@ -68,8 +65,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-
-
+// Ensure authentication/authorization middleware runs before endpoint handling
+app.UseAuthentication();
+app.UseAuthorization();
 
 //map endpoints
 app.MapAuthEndpoints();
@@ -87,9 +85,6 @@ catch (Exception ex)
     logger.LogError(ex, "An error occurred while migrating the database.");
     throw;
 }
-
-app.UseAuthentication();
-app.UseAuthorization();
 
 //setup swagger for development
 if (app.Environment.IsDevelopment())
