@@ -1,4 +1,4 @@
-﻿namespace DivingAPI.Models
+﻿namespace DivingAPI.Models.Auth
 {
     public class Login
     {

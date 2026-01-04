@@ -26,7 +26,8 @@ services:
         condition: service_healthy
             
     environment:
-      - ConnectionStrings__LocalDB=Server=db;Database=DivingDb;User Id=sa;Password=DBStrongPassword1!;TrustServerCertificate=True;Encrypt=False;
+      - ConnectionStrings__LocalDB=${LOCAL_DB_CONN}
+      - Jwt__Key=${JWT_KEY}
       - ASPNETCORE_URLS=http://+:8080
 
 volumes:
