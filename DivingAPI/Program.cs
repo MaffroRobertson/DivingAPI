@@ -21,6 +21,13 @@ builder.Services.AddCustomSwagger();
 
 var app = builder.Build();
 
+// Enforce HTTPS and HSTS in non-development environments
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
+
 // Ensure authentication/authorization middleware runs before endpoint handling
 app.UseAuthentication();
 app.UseAuthorization();
