@@ -1,6 +1,7 @@
 using DivingAPI.Data;
 using DivingAPI.Endpoints;
 using DivingAPI.Extensions;
+using DivingAPI.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication
@@ -14,10 +15,11 @@ builder.Services.AddDatabase(builder.Configuration);
 
 // Authorization and Authentication with JWT
 builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 //configure swagger
 builder.Services.AddCustomSwagger();
-
 
 var app = builder.Build();
 

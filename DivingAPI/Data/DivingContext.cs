@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DivingAPI.Data
 {
+    //EF-Core DB context - No business logic here
     public class DivingContext(DbContextOptions<DivingContext> options)
         : DbContext(options)
     {
