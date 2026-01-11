@@ -4,6 +4,8 @@ using DivingAPI.Extensions;
 using DivingAPI.Services;
 using Microsoft.EntityFrameworkCore;
 
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
 var builder = WebApplication
     .CreateBuilder(args);
 
@@ -12,6 +14,9 @@ builder.Services.AddEndpointsApiExplorer();
 
 //configure database and migrations
 builder.Services.AddDatabase(builder.Configuration);
+
+//configure CORS
+builder.Services.AddCorsPolicy();
 
 // Authorization and Authentication with JWT
 builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -29,6 +34,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
     app.UseHttpsRedirection();
 }
+
+app.UseCors(MyAllowSpecificOrigins);
 
 // Ensure authentication/authorization middleware runs before endpoint handling
 app.UseAuthentication();
