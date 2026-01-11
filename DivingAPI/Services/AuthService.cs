@@ -16,11 +16,14 @@ namespace DivingAPI.Services
     {
         private readonly DivingContext _db;
         private readonly ITokenService _tokenService;
+        private readonly int _maxActiveRefreshTokensPerUser;
 
-        public AuthService(DivingContext db, ITokenService tokenService)
+        public AuthService(DivingContext db, ITokenService tokenService, IConfiguration configuration)
         {
             _db = db;
             _tokenService = tokenService;
+            _maxActiveRefreshTokensPerUser = configuration.GetValue<int?>("Auth:RefreshTokens:MaxActivePerUser") ?? 5;
+            if (_maxActiveRefreshTokensPerUser <= 0) _maxActiveRefreshTokensPerUser = 5;
         }
 
         public async Task<(bool Success, string? AccessToken)> LoginAsync(Login login, string? remoteIp)
@@ -55,6 +58,12 @@ namespace DivingAPI.Services
                 return (false, null);
             }
 
+            // Opportunistic cleanup
+            await PurgeExpiredRefreshTokensAsync();
+
+            // Trim existing active tokens so that after adding one we still respect the limit.
+            await EnforceActiveRefreshTokenLimitAsync(user.Id, keepNewestCount: Math.Max(0, _maxActiveRefreshTokensPerUser - 1), remoteIp);
+
             var accessToken = _tokenService.CreateAccessToken(user);
 
             var refreshToken = _tokenService.CreateRefreshToken();
@@ -78,6 +87,9 @@ namespace DivingAPI.Services
 
         public async Task<(bool Success, string? NewAccessToken, string? NewRefreshToken)> RefreshAsync(string refreshToken, string? remoteIp)
         {
+            // Opportunistic cleanup
+            await PurgeExpiredRefreshTokensAsync();
+
             var hash = _tokenService.HashToken(refreshToken);
             var existing = await _db.RefreshTokens.Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.TokenHash == hash);
@@ -92,6 +104,9 @@ namespace DivingAPI.Services
             {
                 existing.Revoked = DateTime.UtcNow;
                 existing.RevokedByIp = remoteIp;
+
+                // Ensure we don't exceed the active-token limit once the new token is added.
+                await EnforceActiveRefreshTokenLimitAsync(existing.UserId, keepNewestCount: Math.Max(0, _maxActiveRefreshTokensPerUser - 1), remoteIp);
 
                 var newToken = _tokenService.CreateRefreshToken();
                 var newHash = _tokenService.HashToken(newToken);
@@ -135,6 +150,39 @@ namespace DivingAPI.Services
             await _db.SaveChangesAsync();
 
             return true;
+        }
+
+        private Task PurgeExpiredRefreshTokensAsync()
+        {
+            var now = DateTime.UtcNow;
+            return _db.RefreshTokens
+                .Where(rt => rt.Expires <= now)
+                .ExecuteDeleteAsync();
+        }
+
+        private async Task EnforceActiveRefreshTokenLimitAsync(int userId, int keepNewestCount, string? remoteIp)
+        {
+            // We revoke (not delete) active tokens beyond the newest N.
+            // Ordering by Created desc ensures the most recent sessions survive.
+            var active = await _db.RefreshTokens
+                .Where(rt => rt.UserId == userId && rt.Revoked == null && rt.Expires > DateTime.UtcNow)
+                .OrderByDescending(rt => rt.Created)
+                .ToListAsync();
+
+            var excess = active.Skip(keepNewestCount).ToList();
+            if (excess.Count == 0)
+            {
+                return;
+            }
+
+            var now = DateTime.UtcNow;
+            foreach (var rt in excess)
+            {
+                rt.Revoked = now;
+                rt.RevokedByIp = remoteIp;
+            }
+
+            await _db.SaveChangesAsync();
         }
     }
 }

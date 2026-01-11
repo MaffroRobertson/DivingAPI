@@ -23,6 +23,9 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+// Refresh token housekeeping
+builder.Services.AddHostedService<RefreshTokenHousekeepingService>();
+
 //configure swagger
 builder.Services.AddCustomSwagger();
 
