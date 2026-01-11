@@ -17,13 +17,15 @@ namespace DivingAPI.Services
         private readonly DivingContext _db;
         private readonly ITokenService _tokenService;
         private readonly int _maxActiveRefreshTokensPerUser;
+        private readonly ILogger<AuthService> _logger;
 
-        public AuthService(DivingContext db, ITokenService tokenService, IConfiguration configuration)
+        public AuthService(DivingContext db, ITokenService tokenService, IConfiguration configuration, ILogger<AuthService> logger)
         {
             _db = db;
             _tokenService = tokenService;
             _maxActiveRefreshTokensPerUser = configuration.GetValue<int?>("Auth:RefreshTokens:MaxActivePerUser") ?? 5;
             if (_maxActiveRefreshTokensPerUser <= 0) _maxActiveRefreshTokensPerUser = 5;
+            _logger = logger;
         }
 
         public async Task<(bool Success, string? AccessToken)> LoginAsync(Login login, string? remoteIp)
@@ -94,8 +96,27 @@ namespace DivingAPI.Services
             var existing = await _db.RefreshTokens.Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.TokenHash == hash);
 
-            if (existing == null || !existing.IsActive)
+            if (existing == null)
             {
+                return (false, null, null);
+            }
+
+            // Reuse detection: token exists but isn't active (revoked/replaced/expired).
+            // If this token was rotated (ReplacedByTokenHash set) and later presented again,
+            // assume theft/replay and revoke all refresh tokens for that user.
+            if (!existing.IsActive)
+            {
+                if (!string.IsNullOrWhiteSpace(existing.ReplacedByTokenHash))
+                {
+                    _logger.LogWarning(
+                        "Refresh token reuse detected. UserId={UserId} TokenId={TokenId} RemoteIp={RemoteIp}",
+                        existing.UserId,
+                        existing.Id,
+                        remoteIp);
+
+                    await RevokeAllUserRefreshTokensAsync(existing.UserId, remoteIp);
+                }
+
                 return (false, null, null);
             }
 
@@ -183,6 +204,27 @@ namespace DivingAPI.Services
             }
 
             await _db.SaveChangesAsync();
+        }
+
+        private async Task RevokeAllUserRefreshTokensAsync(int userId, string? remoteIp)
+        {
+            var now = DateTime.UtcNow;
+
+            // Revoke all non-expired, non-revoked tokens.
+            var tokens = await _db.RefreshTokens
+                .Where(rt => rt.UserId == userId && rt.Revoked == null && rt.Expires > now)
+                .ToListAsync();
+
+            foreach (var rt in tokens)
+            {
+                rt.Revoked = now;
+                rt.RevokedByIp = remoteIp;
+            }
+
+            if (tokens.Count > 0)
+            {
+                await _db.SaveChangesAsync();
+            }
         }
     }
 }
