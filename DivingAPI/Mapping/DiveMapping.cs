@@ -12,8 +12,8 @@ namespace DivingAPI.Mapping
             {
                 DiveSiteId = dive.DiveSiteId,
                 Date = dive.Date,
-                Duration = dive.Duration,
-                MaxDepth = dive.MaxDepth
+                MaxDepth = dive.MaxDepth,
+                Duration = dive.Duration
             };
         }
 
@@ -24,8 +24,8 @@ namespace DivingAPI.Mapping
                 Id = id,
                 DiveSiteId = dive.DiveSiteId,
                 Date = dive.Date,
-                Duration = dive.Duration,
-                MaxDepth = dive.MaxDepth
+                MaxDepth = dive.MaxDepth,
+                Duration = dive.Duration
             };
         }
         public static DiveSummaryDTO ToDiveSummaryDTO(this Dive dive)
@@ -34,8 +34,8 @@ namespace DivingAPI.Mapping
                 dive.Id,
                 dive.DiveSite!.Name,
                 dive.Date,
-                dive.Duration,
-                dive.MaxDepth
+                dive.MaxDepth,
+                dive.Duration
             );
         }
 
@@ -45,8 +45,9 @@ namespace DivingAPI.Mapping
                 dive.Id,
                 dive.DiveSiteId,
                 dive.Date,
-                dive.Duration,
-                dive.MaxDepth
+                dive.MaxDepth,
+                dive.Duration
+                
             );
         }
     }

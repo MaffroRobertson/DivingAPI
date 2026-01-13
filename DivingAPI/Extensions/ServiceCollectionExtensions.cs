@@ -82,7 +82,7 @@ namespace DivingAPI.Extensions
                 options.AddPolicy("MyAllowSpecificOrigins",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:5173")
+                        policy.WithOrigins("http://localhost:5173", "http://localhost:5093", "http://localhost:54321")
                               .AllowCredentials()
                               .AllowAnyHeader()
                               .AllowAnyMethod();

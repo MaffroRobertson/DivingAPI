@@ -21,6 +21,7 @@ namespace DivingAPI.Endpoints
             //GET all Dives
             group.MapGet("/", async (DivingContext dbContext) =>
                 await dbContext.Dives
+                .Include(d => d.DiveSite)
                 .Select(d => d.ToDiveSummaryDTO())
                 .ToListAsync()
                 );
@@ -61,6 +62,8 @@ namespace DivingAPI.Endpoints
                 dbContext.Entry(existingDive)
                     .CurrentValues
                     .SetValues(updatedDive.ToEntity(id));
+
+                await dbContext.SaveChangesAsync();
 
                 return Results.NoContent();
             });
