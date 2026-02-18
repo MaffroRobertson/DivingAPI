@@ -60,7 +60,7 @@ namespace DivingAPI.Services
                 return (false, null);
             }
 
-            // Opportunistic cleanup
+            // cleanup
             await PurgeExpiredRefreshTokensAsync();
 
             // Trim existing active tokens so that after adding one we still respect the limit.
@@ -89,7 +89,7 @@ namespace DivingAPI.Services
 
         public async Task<(bool Success, string? NewAccessToken, string? NewRefreshToken)> RefreshAsync(string refreshToken, string? remoteIp)
         {
-            // Opportunistic cleanup
+            // cleanup
             await PurgeExpiredRefreshTokensAsync();
 
             var hash = _tokenService.HashToken(refreshToken);
@@ -102,8 +102,6 @@ namespace DivingAPI.Services
             }
 
             // Reuse detection: token exists but isn't active (revoked/replaced/expired).
-            // If this token was rotated (ReplacedByTokenHash set) and later presented again,
-            // assume theft/replay and revoke all refresh tokens for that user.
             if (!existing.IsActive)
             {
                 if (!string.IsNullOrWhiteSpace(existing.ReplacedByTokenHash))
@@ -183,7 +181,7 @@ namespace DivingAPI.Services
 
         private async Task EnforceActiveRefreshTokenLimitAsync(int userId, int keepNewestCount, string? remoteIp)
         {
-            // We revoke (not delete) active tokens beyond the newest N.
+            // We revoke, not delete active tokens.
             // Ordering by Created desc ensures the most recent sessions survive.
             var active = await _db.RefreshTokens
                 .Where(rt => rt.UserId == userId && rt.Revoked == null && rt.Expires > DateTime.UtcNow)

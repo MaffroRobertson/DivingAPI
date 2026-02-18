@@ -68,7 +68,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-        // Optional: nicer default page
         options.RoutePrefix = "swagger";  // Makes /swagger the root
     });
 }

@@ -55,7 +55,6 @@ namespace DivingAPI.Extensions
 
                 const string securitySchemeId = "Bearer";
 
-                // Add this block for JWT Bearer support
                 options.AddSecurityDefinition(securitySchemeId, new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
@@ -82,7 +81,7 @@ namespace DivingAPI.Extensions
                 options.AddPolicy("MyAllowSpecificOrigins",
                     policy =>
                     {
-                        policy.WithOrigins("http://localhost:5173", "http://localhost:5093", "http://localhost:54321")
+                        policy.WithOrigins("http://localhost:5173")
                               .AllowCredentials()
                               .AllowAnyHeader()
                               .AllowAnyMethod();

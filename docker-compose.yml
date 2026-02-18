@@ -24,11 +24,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-            
     environment:
       - ConnectionStrings__LocalDB=${LOCAL_DB_CONN}
       - Jwt__Key=${JWT_KEY}
       - ASPNETCORE_URLS=http://+:8080
-
 volumes:
   sql-data:
